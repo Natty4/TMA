@@ -10,7 +10,7 @@ import requests
 load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-
+URL = "http://localhost:8000/get_appointments"
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -26,10 +26,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
     if query.data == 'book':
-        await query.edit_message_text(text="Please visit our web page to book an appointment: [URL]")
+        # keyboard to launch the mini app to book an appointment
+        keyboard = [[{'text': 'Book an Appointment', 'url': URL}]]
+        reply_markup = {'inline_keyboard': keyboard}
+        await query.edit_message_text(text='Click the button below to book an appointment', reply_markup=reply_markup)
+        
     elif query.data == 'view':
-        user_email = query.from_user.id
-        response = requests.get(f'http://localhost:8000/get_appointments/?email={user_email}')
+        user_email = 'Johnd@email.com'
+        response = requests.get(f'{URL}/{user_email}/')
         if response.status_code == 200:
             appointments = response.json().get('appointments', [])
             message = "Your Appointments:\n\n"
@@ -47,7 +51,7 @@ async def send_reminder_notification(user_id: int, message: str):
     await context.bot.send_message(chat_id=user_id, text=message)
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token('YOUR_TELEGRAM_BOT_TOKEN').build()
+    application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CallbackQueryHandler(button))

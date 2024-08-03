@@ -82,11 +82,10 @@ def submit_feedback(request):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=405)
 
-def get_appointments(request):
-    user_email = request.GET.get('email')
-    user = get_object_or_404(Auser, email=user_email)
+def get_appointments(request, email):
+    user = get_object_or_404(Auser, email=email)
     appointments = Appointment.objects.filter(user=user).values(
-        'id', 'service__name', 'doctor__full_name', 'date', 'time', 'status', 'amount', 'payment_status'
+        'id', 'service__name', 'doctor__full_name', 'date', 'time', 'status'
     )
     return JsonResponse({'appointments': list(appointments)})
 
