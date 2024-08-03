@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Clinic Appointment</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Book Your Appointment</h1>
+        <form id="appointmentForm" method="POST" action="{% url 'book_appointment' %}">
+            {% csrf_token %}
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <label for="phone_number">Phone Number:</label>
+            <input type="tel" id="phone_number" name="phone_number" required>
+            <label for="service">Service:</label>
+            <select id="service" name="service" required>
+                <!-- Options will be populated by JavaScript -->
+            </select>
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required>
+            <label for="time">Time:</label>
+            <input type="time" id="time" name="time" required>
+            <label for="reason_for_appointment">Reason for Appointment:</label>
+            <textarea id="reason_for_appointment" name="reason_for_appointment" required></textarea>
+            <label for="notes">Notes:</label>
+            <textarea id="notes" name="notes"></textarea>
+            <input type="hidden" id="selected_doctor" name="doctor">
+            <button type="submit">Book Appointment</button>
+        </form>
+
+        <h1>Available Doctors</h1>
+        <div id="doctorList">
+            <!-- Doctor list will be populated by JavaScript -->
+        </div>
+
+        {% comment %} <h1>Submit Feedback</h1>
+        <form id="feedbackForm" method="POST" action="{% url 'submit_feedback' %}">
+            {% csrf_token %}
+            <label for="appointment_id">Appointment ID:</label>
+            <input type="text" id="appointment_id" name="appointment_id" required>
+            <label for="rating">Rating:</label>
+            <select id="rating" name="rating" required>
+                <option value="1">1 - Poor</option>
+                <option value="2">2 - Fair</option>
+                <option value="3">3 - Good</option>
+                <option value="4">4 - Very Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
+            <label for="comments">Comments:</label>
+            <textarea id="comments" name="comments" required></textarea>
+            <button type="submit">Submit Feedback</button>
+        </form> {% endcomment %}
+    </div>
+
+    <script> 
+
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('JavaScript is running!'); // Check if JS runs
+
+            // Fetch services
+            fetch('/get_services/')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Services:', data); // Check fetched data
+                    const serviceSelect = document.getElementById('service');
+                    data.services.forEach(service => {
+                        const option = document.createElement('option');
+                        option.value = service.id;
+                        option.text = `${service.name} - $${service.price}`;
+                        serviceSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching services:', error);
+                });
+
+            // Fetch doctors
+            fetch('/get_doctors/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Doctors:', data); // Check fetched data
+                    const doctorList = document.getElementById('doctorList');
+                    data.doctors.forEach(doctor => {
+                        const doctorDiv = document.createElement('div');
+                        doctorDiv.className = 'doctor-item';
+                        doctorDiv.innerHTML = `
+                            <h3>${doctor.full_name}</h3>
+                            <p><strong>Specialty:</strong> ${doctor.specialty}</p>
+                            <p><strong>Availability:</strong> ${doctor.availability}</p>
+                            <p><strong>Rating:</strong> ${doctor.rating} / 5</p>
+                            <button type="button" onclick="selectDoctor(${doctor.id})">Select Doctor</button>
+                        `;
+                        doctorList.appendChild(doctorDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching doctors:', error);
+                });
+        });
+
+        // Function to handle doctor selection
+        window.selectDoctor = function(doctorId) {
+            document.getElementById('selected_doctor').value = doctorId;
+            alert('Doctor selected with ID: ' + doctorId);
+        };
+
+
+    </script>
+</body>
+</html>

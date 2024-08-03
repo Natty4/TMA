@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Clinic Appointment | Choose Category</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1> Welcome to Dental Clinic</h1>
+        <h2>Choose a category to book an appointment</h2>
+        <div class="category">
+            <l>
+                <a href="{% url 'appointment' %}?category=general">General</a>
+            </l>
+            <l>
+                <a href="{% url 'appointment' %}?category=orthodontics">Orthodontics</a>
+            </l>
+            <l>
+                <a href="{% url 'appointment' %}?category=pediatric">Pediatric</a>
+            </l>
+            <l>
+                <a href="{% url 'appointment' %}?category=cosmetic">Cosmetic</a>
+            </l>
+
+
+
+    </div>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html> 
