@@ -1,12 +1,19 @@
 {
-    "build": {
-      "env": {
-        "DJANGO_SETTINGS_MODULE": "Abooking.settings.production"
-      },
-      "cmd": "pip install -r requirements.txt && python manage.py collectstatic --noinput"
-    },
+    "builds": [
+      {
+        "src": "Abooking/wsgi.py",
+        "use": "@vercel/python",
+        "config": { "maxLambdaSize": "15mb", "runtime": "python3.10" }
+      }],
     "routes": [
-      { "src": "/static/(.*)", "dest": "/static/$1" },
-      { "src": "/(.*)", "dest": "index.html" }
+      {
+        "src": "/(.*)",
+        "dest": "Abooking/wsgi.py"
+      },
+        {
+            "src": "/static/(.*)",
+            "dest": "Abooking/static/$1"
+        }
     ]
-  }
+
+}
