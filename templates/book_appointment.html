@@ -10,6 +10,19 @@
 <body>
     <div class="container">
         <h1>Book Your Appointment</h1>
+
+        <!-- Error message will be displayed here -->
+        <div id="errorMessage">
+            <!-- Error message will be populated by JavaScript -->
+
+        </div>
+
+        
+        <!-- Service Card -->
+        <div id="serviceCard" class="service-card">
+            <!-- Service details will be populated by JavaScript -->
+        </div>
+        
         <form id="appointmentForm" method="POST" action="{% url 'book_appointment' %}">
             {% csrf_token %}
             <label for="name">Name:</label>
@@ -18,10 +31,6 @@
             <input type="email" id="email" name="email" required>
             <label for="phone_number">Phone Number:</label>
             <input type="tel" id="phone_number" name="phone_number" required>
-            {% comment %} <label for="service">Service:</label>
-            <select id="service" name="service" required>
-                <!-- Options will be populated by JavaScript -->
-            </select> {% endcomment %}
             <label for="date">Date:</label>
             <input type="date" id="date" name="date" required>
             <label for="time">Time:</label>
@@ -30,9 +39,12 @@
             <textarea id="reason_for_appointment" name="reason_for_appointment"></textarea>
             <label for="notes">Notes:</label>
             <textarea id="notes" name="notes"></textarea>
+            <input type="hidden" id="selected_service" name="service">
             <input type="hidden" id="selected_doctor" name="doctor">
             <button type="submit">Book Appointment</button>
         </form>
+
+        
 
         <h1>Available Professionals</h1>
         <div id="doctorList" class="card-container">
@@ -43,23 +55,26 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const urlParams = new URLSearchParams(window.location.search);
-            const serviceId = urlParams.get('service_id');
+            const serviceId = urlParams.get('service');
 
-            // Fetch services for the selected service_id
-            fetch(/get_services/?id=${serviceId})
-                .then(response => response.json())
-                .then(data => {
-                    const serviceSelect = document.getElementById('service');
-                    data.services.forEach(service => {
-                        const option = document.createElement('option');
-                        option.value = service.id;
-                        option.text = ${service.name} - $${service.price};
-                        serviceSelect.appendChild(option);
+            if (serviceId) {
+                fetch(`/get_services/?service=${serviceId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const serviceCard = document.getElementById('serviceCard');
+                        console.log(data, ">>>>>>", data.service.name)
+                        serviceCard.innerHTML = `
+                            <h2>${data.service.name}</h2>
+                            <p>${data.service.description}</p>
+                            <p><strong>Duration:</strong> ${data.service.duration} minutes</p>
+                            <p><strong>Price:</strong> $${data.service.price}</p>
+                        `;
+                        document.getElementById('selected_service').value = serviceId;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching service:', error);
                     });
-                })
-                .catch(error => {
-                    console.error('Error fetching services:', error);
-                });
+            }
 
             // Fetch doctors
             fetch('/get_doctors/')
@@ -74,13 +89,13 @@
                     data.doctors.forEach(doctor => {
                         const card = document.createElement('div');
                         card.className = 'card';
-                        card.innerHTML = 
+                        card.innerHTML = `
                             <h3>${doctor.full_name}</h3>
                             <p><strong>Specialty:</strong> ${doctor.specialty}</p>
                             <p><strong>Availability:</strong> ${doctor.availability}</p>
                             <p><strong>Rating:</strong> ${doctor.rating} / 5</p>
                             <button type="button" onclick="selectDoctor(${doctor.id})">Select</button>
-                        ;
+                        `;
                         doctorList.appendChild(card);
                     });
                 })
@@ -94,6 +109,35 @@
             document.getElementById('selected_doctor').value = doctorId;
             alert('Doctor selected with ID: ' + doctorId);
         };
+
+        // Function to handle form submission
+
+        document.getElementById('appointmentForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: form.method,
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        const errorMessage = document.getElementById('errorMessage');
+                        errorMessage.innerHTML = `<p>${data.error}</p>`;
+                    } else {
+                        window.location.href = '/appointmentsuccess/';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting form:', error);
+                });
+        });
+
+
+        
     </script>
 </body>
 </html>

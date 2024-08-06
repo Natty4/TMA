@@ -1,9 +1,10 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from .models import Auser, Service, Doctor, Appointment, Feedback
+from .forms import AppointmentForm
 import requests
 
 
@@ -18,9 +19,13 @@ def index(request):
 #     return JsonResponse({'categories': list(categories)})
 
 def get_services(request):
-    service_id = request.GET.get('id')
-    services = Service.objects.filter(id=service_id, is_active=True).values('id', 'name', 'price')
+    service_id = request.GET.get('service')
+    if service_id:
+        service = get_object_or_404(Service, id=service_id)
+        return JsonResponse({'service': {'id': service.id, 'name': service.name, 'price': service.price, 'duration': service.duration, 'description': service.description}})
+    services = Service.objects.all().values('id', 'name', 'price', 'duration')
     return JsonResponse({'services': list(services)})
+
 
 def get_doctors(request):
     doctors = Doctor.objects.all().values('id', 'full_name', 'specialty', 'availability', 'rating')
@@ -57,47 +62,66 @@ def submit_feedback(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
     
-
-@csrf_exempt
 def book_appointment(request):
+    print('------------------1')
     if request.method == 'POST':
-        user_email = request.POST.get('email')
-        user_name = request.POST.get('name')
-        user_phone = request.POST.get('phone_number')
-        service_id = request.POST.get('service')
-        doctor_id = request.POST.get('doctor')
-        appointment_date = request.POST.get('date')
-        appointment_time = request.POST.get('time')
-        reason = request.POST.get('reason_for_appointment', None)
-        notes = request.POST.get('notes', None)
+        print('------------------2')
+        form = AppointmentForm(request.POST)
+        print(form.data, '>>>>>>>>>>>>')
+        if form.is_valid():
+            print('------------------3')
+            appointment = form.save()
+            # Optionally send a confirmation email or notification here
+            return redirect('appointment_success')  # Redirect to a success page or confirmation page
+        else:
+            return render(request, 'book_appointment.html', {'form': form, 'error': 'Invalid form submission.'})
+    else:
+        return render(request, 'book_appointment.html')
 
-        user, created = Auser.objects.get_or_create(email=user_email, defaults={'full_name': user_name, 'phone_number': user_phone})
-        service = get_object_or_404(Service, id=service_id)
-        doctor = get_object_or_404(Doctor, id=doctor_id)
 
-        appointment = Appointment.objects.create(
-            user=user,
-            service=service,
-            amount=service.price,
-            doctor=doctor,
-            date=appointment_date,
-            time=appointment_time,
-            reason_for_appointment=reason,
-            notes=notes,
-            status='booked'
-        )
+def appointment_success(request):
+    return render(request, 'appointment_success.html')
 
-        # send_mail(
-        #     'Appointment Confirmation',
-        #     f'Your appointment for {service.name} with Dr. {doctor.full_name} on {appointment_date} at {appointment_time} has been booked.',
-        #     'clinic@example.com',
-        #     [user_email],
-        #     fail_silently=False,
-        # )
+# @csrf_exempt
+# def book_appointment(request):
+#     if request.method == 'POST':
+#         user_email = request.POST.get('email')
+#         user_name = request.POST.get('name')
+#         user_phone = request.POST.get('phone_number')
+#         service_id = request.POST.get('service')
+#         doctor_id = request.POST.get('doctor')
+#         appointment_date = request.POST.get('date')
+#         appointment_time = request.POST.get('time')
+#         reason = request.POST.get('reason_for_appointment', None)
+#         notes = request.POST.get('notes', None)
 
-        return JsonResponse({'status': 'success', 'appointment_id': appointment.id})
+#         user, created = Auser.objects.get_or_create(email=user_email, defaults={'full_name': user_name, 'phone_number': user_phone})
+#         service = get_object_or_404(Service, id=service_id)
+#         doctor = get_object_or_404(Doctor, id=doctor_id)
 
-    return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=405)
+#         appointment = Appointment.objects.create(
+#             user=user,
+#             service=service,
+#             amount=service.price,
+#             doctor=doctor,
+#             date=appointment_date,
+#             time=appointment_time,
+#             reason_for_appointment=reason,
+#             notes=notes,
+#             status='booked'
+#         )
+
+#         # send_mail(
+#         #     'Appointment Confirmation',
+#         #     f'Your appointment for {service.name} with Dr. {doctor.full_name} on {appointment_date} at {appointment_time} has been booked.',
+#         #     'clinic@example.com',
+#         #     [user_email],
+#         #     fail_silently=False,
+#         # )
+
+#         return JsonResponse({'status': 'success', 'appointment_id': appointment.id})
+
+#     return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=405)
 
 
 def get_appointments(request, email):
