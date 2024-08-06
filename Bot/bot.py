@@ -11,6 +11,7 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 URL = "http://localhost:8000/get_appointments"
+MINI_APP_URL = os.getenv('MINI_APP_URL')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -20,16 +21,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton("Submit Feedback", callback_data='feedback')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Welcome to the Dental Clinic Appointment Bot!', reply_markup=reply_markup)
-
+    print(MINI_APP_URL, '----------')
+    try:
+        await update.message.reply_text('Welcome to the Dental Clinic Appointment Bot!', reply_markup=reply_markup)
+    except Exception as e:
+        print(f"Error_____________________77777________________: {e}")
+   
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
     if query.data == 'book':
         # keyboard to launch the mini app to book an appointment
-        keyboard = [[{'text': 'Book an Appointment', 'url': URL}]]
-        reply_markup = {'inline_keyboard': keyboard}
-        await query.edit_message_text(text='Click the button below to book an appointment', reply_markup=reply_markup)
+        keyboard = [
+        [InlineKeyboardButton("Open Mini App", url=MINI_APP_URL)]
+    ]
+        try:
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text(text='Click the button below to book an appointment', reply_markup=reply_markup)
+        except Exception as e:
+            print(f"Error_____________________________________: {e}----{MINI_APP_URL}")
         
     elif query.data == 'view':
         user_email = 'Johnd@email.com'

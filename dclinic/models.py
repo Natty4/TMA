@@ -8,12 +8,17 @@ class Auser(models.Model):
 
     def __str__(self):
         return self.full_name
+    
 
 class Service(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     duration = models.IntegerField(help_text='Duration in minutes')
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    professionals = models.ManyToManyField('Doctor', related_name='services')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -52,13 +57,15 @@ class Appointment(models.Model):
     cancellation_reason = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.user.full_name} - {self.service.name} on {self.date} at {self.time}"
+        # Format date as "day (number), month (name), year"
+        formatted_date = self.date.strftime('%B, %d')
+        return f"{self.user.full_name} - {self.service.name} on {formatted_date} at {self.time.strftime('%H:%M')}"
     
     
 class Feedback(models.Model):
     appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE)
     rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
-    comments = models.TextField()
+    comments = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"Feedback for {self.appointment}"

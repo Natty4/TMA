@@ -1,9 +1,11 @@
 from django.contrib import admin
 from .models import Service, Doctor, Appointment, Feedback, Auser
-
+    
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'duration', 'price')
+    list_display = ('name', 'price',  'duration')
+    filter_horizontal = ('professionals',)
+    search_fields = ('name', 'professionals__full_name')
     
 @admin.register(Doctor)
 class DoctorAdmin(admin.ModelAdmin):

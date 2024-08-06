@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Feedback</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: center;
+        }
+
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 2rem;
+            color: #ddd;
+            cursor: pointer;
+        }
+
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #f5b301;
+        }
+
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            border: 1px solid #ccc;
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 5px;
+            width: calc(33.333% - 2rem);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .container {
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Submit Feedback</h1>
+        <div id="appointmentList" class="card-container">
+            <!-- Appointment cards will be populated by JavaScript -->
+        </div>
+        <div id="noAppointmentsMessage" style="display: none;">
+            <p>No completed appointments yet.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Fetch completed appointments for the current user
+            fetch('/get_completed_appointments/?user_id=2')
+                .then(response => response.json())
+                .then(data => {
+                    const appointmentList = document.getElementById('appointmentList');
+                    const noAppointmentsMessage = document.getElementById('noAppointmentsMessage');
+
+                    if (data.appointments.length === 0) {
+                        noAppointmentsMessage.style.display = 'block';
+                        console.log(data.appointments, "<<<<<<")
+                    } else {
+                        noAppointmentsMessage.style.display = 'none';
+                        console.log(data.appointments, ">>>>>>")
+                        data.appointments.forEach(appointment => {
+                            const card = document.createElement('div');
+                            card.className = 'card';
+                            card.innerHTML = `
+                                <h3>Appointment with ${appointment.doctor__full_name}</h3>
+                                <p><strong>Service:</strong> ${appointment.service__name}</p>
+                                <p><strong>Date:</strong> ${appointment.date}</p>
+                                <p><strong>Time:</strong> ${appointment.time}</p>
+                                <form onsubmit="submitFeedback(event, ${appointment.id})">
+                                    <div class="star-rating">
+                                        <input type="radio" id="5-stars-${appointment.id}" name="rating-${appointment.id}" value="5" required/>
+                                        <label for="5-stars-${appointment.id}">&#9733;</label>
+                                        <input type="radio" id="4-stars-${appointment.id}" name="rating-${appointment.id}" value="4"/>
+                                        <label for="4-stars-${appointment.id}">&#9733;</label>
+                                        <input type="radio" id="3-stars-${appointment.id}" name="rating-${appointment.id}" value="3"/>
+                                        <label for="3-stars-${appointment.id}">&#9733;</label>
+                                        <input type="radio" id="2-stars-${appointment.id}" name="rating-${appointment.id}" value="2"/>
+                                        <label for="2-stars-${appointment.id}">&#9733;</label>
+                                        <input type="radio" id="1-stars-${appointment.id}" name="rating-${appointment.id}" value="1"/>
+                                        <label for="1-stars-${appointment.id}">&#9733;</label>
+                                    </div>
+                                    <label for="comments-${appointment.id}">Comments:</label>
+                                    <textarea id="comments-${appointment.id}" name="comments-${appointment.id}" required></textarea>
+                                    <button type="submit">Submit Feedback</button>
+                                </form>
+                            `;
+                            appointmentList.appendChild(card);
+                        });
+                    }
+                })
+                
+                .catch(error => {
+                    console.error('Error fetching appointments:', error);
+                });
+        });
+
+        // Function to handle feedback submission
+        window.submitFeedback = function(event, appointmentId) {
+            event.preventDefault();
+            const rating = document.querySelector(`input[name="rating-${appointmentId}"]:checked`).value;
+            const comments = document.getElementById(`comments-${appointmentId}`).value;
+        
+        
+            fetch('/submit_feedback/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    appointment_id: appointmentId,
+                    rating: rating,
+                    comments: comments
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Thank you for your feedback!');
+                    location.reload(); // Reload the page to reflect changes
+                } else {
+                    console.log(data.error, ">>>>>>error<<<<<<");
+                    alert('Error submitting feedback. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting feedback:', error);
+            });
+        };
+    </script>
+</body>
+</html>

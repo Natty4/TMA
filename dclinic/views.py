@@ -1,28 +1,62 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from .models import Auser, Service, Doctor, Appointment, Feedback
+import requests
 
 
-
-def get_services(request):
-    services = Service.objects.all().values('id', 'name', 'price')
-    return JsonResponse({'services': list(services)})
-
-def get_doctors(request):
-    doctors = Doctor.objects.all().values('id', 'full_name', 'specialty', 'availability', 'rating')
-    return JsonResponse({'doctors': list(doctors)})
 
 def index(request):
     services = Service.objects.all()
     doctors = Doctor.objects.all()
     return render(request, 'index.html', {'services': services, 'doctors': doctors})
 
-def appointment(request):
-    services = Service.objects.all()
-    doctors = Doctor.objects.all()
-    return render(request, 'booking_form.html', {'services': services, 'doctors': doctors})
+# def get_categories(request):
+#     categories = Category.objects.all().values('id', 'name')
+#     return JsonResponse({'categories': list(categories)})
+
+def get_services(request):
+    service_id = request.GET.get('id')
+    services = Service.objects.filter(id=service_id, is_active=True).values('id', 'name', 'price')
+    return JsonResponse({'services': list(services)})
+
+def get_doctors(request):
+    doctors = Doctor.objects.all().values('id', 'full_name', 'specialty', 'availability', 'rating')
+    return JsonResponse({'doctors': list(doctors)})
+
+def feedback_page(request):
+    return render(request, 'feedback.html')
+
+def book_appointment_page(request):
+    return render(request, 'booking_form.html')
+
+def get_completed_appointments(request):
+    user_id = request.GET.get('user_id')
+    appointments = Appointment.objects.filter(status='completed').values('id', 'doctor__full_name', 'service__name', 'date', 'time')
+    return JsonResponse({'appointments': list(appointments)})
+
+import json
+
+@csrf_exempt
+@require_POST
+def submit_feedback(request):
+    try:
+        data = json.loads(request.body)
+        appointment_id = data.get('appointment_id')
+        rating = data.get('rating')
+        comments = data.get('comments')
+
+        appointment = Appointment.objects.get(id=appointment_id)
+        Feedback.objects.create(appointment=appointment, rating=rating, comments=comments)
+
+        return JsonResponse({'success': True})
+    except Appointment.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Appointment does not exist'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
 
 @csrf_exempt
 def book_appointment(request):
@@ -34,8 +68,8 @@ def book_appointment(request):
         doctor_id = request.POST.get('doctor')
         appointment_date = request.POST.get('date')
         appointment_time = request.POST.get('time')
-        reason = request.POST.get('reason_for_appointment')
-        notes = request.POST.get('notes')
+        reason = request.POST.get('reason_for_appointment', None)
+        notes = request.POST.get('notes', None)
 
         user, created = Auser.objects.get_or_create(email=user_email, defaults={'full_name': user_name, 'phone_number': user_phone})
         service = get_object_or_404(Service, id=service_id)
@@ -65,22 +99,6 @@ def book_appointment(request):
 
     return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=405)
 
-@csrf_exempt
-def submit_feedback(request):
-    if request.method == 'POST':
-        appointment_id = request.POST.get('appointment_id')
-        rating = request.POST.get('rating')
-        comments = request.POST.get('comments')
-
-        appointment = get_object_or_404(Appointment, id=appointment_id)
-        Feedback.objects.create(
-            appointment=appointment,
-            rating=rating,
-            comments=comments
-        )
-
-        return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=405)
 
 def get_appointments(request, email):
     user = get_object_or_404(Auser, email=email)
@@ -100,7 +118,6 @@ def cancel_appointment(request, appointment_id):
     appointment.status = 'canceled'
     appointment.save()
     return JsonResponse({'status': 'success'})
-
 
 
 

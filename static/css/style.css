@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f8f8f8;
+    background-color: #02142e;
     margin: 0;
     padding: 0;
 }
@@ -72,6 +72,66 @@ button:hover {
 .doctor-item button:hover {
     background-color: #0056b3;
 }
+
+.doctor-item button + button {
+    margin-left: 10px;
+}
+
+.doctor-item button.delete {
+    background-color: #dc3545;
+}
+
+.doctor-item button.delete:hover {
+    background-color: #bd2130;
+}
+
+.doctor-item button.edit {
+    background-color: #ffc107;
+}
+
+.doctor-item button.edit:hover {
+    background-color: #d39e00;
+}
+
+.doctor-item button + button + button {
+    margin-left: 10px;
+}
+
+.card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.card h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.card p {
+    margin: 5px 0;
+}
+
+.card button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.card button:hover {
+    background-color: #0056b3;
+}
+
+.card button + button {
+    margin-left: 10px;
+}
+
+.card button.delete {
+    background-color: #dc3545;
+}
+
 
 
 
