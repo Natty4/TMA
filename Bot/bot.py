@@ -21,11 +21,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         [InlineKeyboardButton("Submit Feedback", callback_data='feedback')]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    print(MINI_APP_URL, '----------')
+
     try:
         await update.message.reply_text('Welcome to the Dental Clinic Appointment Bot!', reply_markup=reply_markup)
     except Exception as e:
-        print(f"Error_____________________77777________________: {e}")
+        
    
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -39,7 +39,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             reply_markup = InlineKeyboardMarkup(keyboard)
             await query.edit_message_text(text='Click the button below to book an appointment', reply_markup=reply_markup)
         except Exception as e:
-            print(f"Error_____________________________________: {e}----{MINI_APP_URL}")
+
         
     elif query.data == 'view':
         user_email = 'Johnd@email.com'
