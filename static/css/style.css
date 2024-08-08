@@ -41,10 +41,23 @@ button {
     margin-top: 20px;
 }
 
+.download-invoice {
+    background-color: #18ff9b;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
 button:hover {
     background-color: #0056b3;
 }
 
+.error-card {
+    color: #ddd;
+    margin-top: 5px;
+    background-color: #dc3545;
+}
 
 .doctor-item {
     border: 1px solid #ddd;
@@ -129,7 +142,7 @@ button:hover {
 }
 
 .card button.delete {
-    background-color: #dc3545;
+    background-color: #8eaffd;
 }
 
 

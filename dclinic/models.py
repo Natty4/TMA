@@ -58,8 +58,9 @@ class Appointment(models.Model):
 
     def __str__(self):
         # Format date as "day (number), month (name), year"
-        formatted_date = self.date.strftime('%B, %d')
-        return f"{self.user.full_name} - {self.service.name} on {formatted_date} at {self.time.strftime('%H:%M')}"
+        # formatted_date = self.date.strftime('%B, %d')
+        # return f"{self.user.full_name} - {self.service.name} on {formatted_date} at {self.time.strftime('%H:%M')}"
+        return str(self.id) + ' - ' + self.user.full_name 
     
     
 class Feedback(models.Model):
@@ -72,28 +73,3 @@ class Feedback(models.Model):
 
 
 
-
-
-
-
-
-# from django.db import models
-
-# class Service(models.Model):
-#     name = models.CharField(max_length=255)
-#     description = models.TextField()
-#     duration = models.IntegerField(help_text='Duration in minutes')
-#     price = models.DecimalField(max_digits=10, decimal_places=2)
-
-#     def __str__(self):
-#         return self.name
-
-# class Appointment(models.Model):
-#     name = models.CharField(max_length=255)
-#     email = models.EmailField()
-#     service = models.ForeignKey(Service, on_delete=models.CASCADE)
-#     date = models.DateField()
-#     time = models.TimeField()
-
-#     def __str__(self):
-#         return f"{self.name} - {self.service.name} on {self.date} at {self.time}"

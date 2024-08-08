@@ -4,8 +4,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from .models import Auser, Service, Doctor, Appointment, Feedback
-from .forms import AppointmentForm
+from .forms import AppointmentForm, AuserForm
 import requests
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import io
 
 
 
@@ -14,17 +18,26 @@ def index(request):
     doctors = Doctor.objects.all()
     return render(request, 'index.html', {'services': services, 'doctors': doctors})
 
-# def get_categories(request):
-#     categories = Category.objects.all().values('id', 'name')
-#     return JsonResponse({'categories': list(categories)})
-
 def get_services(request):
     service_id = request.GET.get('service')
-    if service_id:
+    if service_id: 
         service = get_object_or_404(Service, id=service_id)
-        return JsonResponse({'service': {'id': service.id, 'name': service.name, 'price': service.price, 'duration': service.duration, 'description': service.description}})
-    services = Service.objects.all().values('id', 'name', 'price', 'duration')
-    return JsonResponse({'services': list(services)})
+        doctors = service.professionals.all()
+        return JsonResponse({
+            'service': {
+                'id': service.id,
+                'name': service.name,
+                'description': service.description,
+                'duration': service.duration,
+                'price': service.price,
+                'doctors': [{'id': doctor.id, 'full_name': doctor.full_name, 'specialty': doctor.specialty, 'availability': doctor.availability, 'rating': doctor.rating} for doctor in doctors]
+            }
+        })
+    else:
+        services = Service.objects.filter(is_active=True)
+        return JsonResponse({
+            'services': [{'id': service.id, 'name': service.name, 'description': service.description, 'duration': service.duration, 'price': service.price} for service in services]
+        })
 
 
 def get_doctors(request):
@@ -61,26 +74,163 @@ def submit_feedback(request):
         return JsonResponse({'success': False, 'error': 'Appointment does not exist'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
-    
-def book_appointment(request):
-    print('------------------1')
-    if request.method == 'POST':
-        print('------------------2')
-        form = AppointmentForm(request.POST)
-        print(form.data, '>>>>>>>>>>>>')
-        if form.is_valid():
-            print('------------------3')
-            appointment = form.save()
-            # Optionally send a confirmation email or notification here
-            return redirect('appointment_success')  # Redirect to a success page or confirmation page
-        else:
-            return render(request, 'book_appointment.html', {'form': form, 'error': 'Invalid form submission.'})
-    else:
-        return render(request, 'book_appointment.html')
 
+
+def book_appointment_step1(request):
+    services_d = request.GET.get('service')
+    service = get_object_or_404(Service, id=services_d)
+    return render(request, 'book_appointment_step1.html', {'service': service})
+
+def book_appointment_step2(request):
+    service_id = request.GET.get('service')
+    doctor_id = request.GET.get('doctor')
+    date = request.GET.get('date')
+    time = request.GET.get('time')
+
+    if not (service_id and doctor_id and date and time):
+        return JsonResponse({'error': 'Missing required parameters'}, status=400)
+
+    try:
+        service = get_object_or_404(Service, id=service_id)
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+    except (Service.DoesNotExist, Doctor.DoesNotExist):
+        return JsonResponse({'error': 'Service or Doctor not found'}, status=404)
+
+    context = {
+        'service': service,
+        'doctor': doctor,
+        'date': date,
+        'time': time,
+        'form': AuserForm()
+    }
+
+    return render(request, 'book_appointment_step2.html', context)
+
+def book_appointment(request):
+    if request.method == 'POST':
+        form = AuserForm(request.POST)
+        if form.is_valid():
+            auser = form.save()
+            service_id = request.POST.get('service')
+            doctor_id = request.POST.get('doctor')
+            date = request.POST.get('date')
+            time = request.POST.get('time')
+            reason_for_appointment = request.POST.get('reason_for_appointment', '')
+            notes = request.POST.get('notes', '')
+
+            service = get_object_or_404(Service, id=service_id)
+            doctor = get_object_or_404(Doctor, id=doctor_id)
+
+            appointment = Appointment.objects.create(
+                user=auser,
+                service=service,
+                doctor=doctor,
+                date=date,
+                time=time,
+                reason_for_appointment=reason_for_appointment,
+                notes=notes,
+                amount=service.price
+            )
+            # Optionally send a confirmation email or notification here
+            return redirect(f'/appointment_summary/?appointment_id={appointment.id}')
+        else:
+            return render(request, 'book_appointment_step2.html', {'form': form, 'error': 'Invalid form submission.'})
+    else:
+        return redirect('book_appointment_step1')
 
 def appointment_success(request):
-    return render(request, 'appointment_success.html')
+    if request.method == 'POST':
+        appointment_id = request.POST.get('appointment_id')
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+        return render(request, 'appointment_success.html', {'appointment': appointment})
+    else:
+        appointment_id = request.GET.get('appointment_id')
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+        return render(request, 'appointment_success.html', {'appointment': appointment})
+
+def appointment_summary(request):
+    if request.method == 'POST':
+        appointment_id = request.POST.get('appointment_id')
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+        
+        # For now, just a placeholder for payment handling
+        payment_method = request.POST.get('payment_method')
+        if payment_method == 'card':
+            # Process card payment (placeholder)
+            pass
+        elif payment_method == 'cash':
+            # Process cash payment (placeholder)
+            pass
+
+        # Update the appointment status
+        appointment.payment_status = 'paid'
+        appointment.save()
+
+        return redirect('appointment_success')
+    else:
+        appointment_id = request.GET.get('appointment_id')
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+        return render(request, 'appointment_summary.html', {'appointment': appointment})
+    
+    
+
+def generate_invoice(request):
+    appointment_id = request.GET.get('appointment_id')
+    try:
+        appointment = Appointment.objects.get(id=appointment_id)
+    except Appointment.DoesNotExist:
+        return HttpResponse("Appointment not found", status=404)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="invoice_{appointment_id}.pdf"'
+
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Draw invoice details
+    p.drawString(100, height - 100, f"Invoice for Appointment #{appointment_id}")
+    p.drawString(100, height - 140, f"Name: {appointment.user.full_name}")
+    p.drawString(100, height - 180, f"Email: {appointment.user.email}")
+    p.drawString(100, height - 220, f"Phone: {appointment.user.phone_number}")
+    p.drawString(100, height - 260, f"Service: {appointment.service.name}")
+    p.drawString(100, height - 300, f"Doctor: {appointment.doctor.full_name}")
+    p.drawString(100, height - 340, f"Date: {appointment.date.strftime('%Y-%m-%d')}")
+    p.drawString(100, height - 380, f"Time: {appointment.time.strftime('%H:%M')}")
+    p.drawString(100, height - 420, f"Price: ${appointment.service.price}")
+    p.drawString(100, height - 460, f"Payment Status: {appointment.payment_status}")
+
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    response.write(pdf)
+    return response
+
+
+
+# def book_appointment(request):
+#     print('------------------1')
+#     if request.method == 'POST':
+#         print('------------------2')
+#         form = AppointmentForm(request.POST)
+#         print(form.data, '>>>>>>>>>>>>')
+#         if form.is_valid():
+#             print('------------------3')
+#             appointment = form.save()
+#             # Optionally send a confirmation email or notification here
+#             return redirect('appointment_success')  # Redirect to a success page or confirmation page
+#         else:
+#             return render(request, 'book_appointment.html', {'form': form, 'error': 'Invalid form submission.'})
+#     else:
+#         return render(request, 'book_appointment.html')
+
+
+# def appointment_success(request):
+#     return render(request, 'appointment_success.html')
 
 # @csrf_exempt
 # def book_appointment(request):

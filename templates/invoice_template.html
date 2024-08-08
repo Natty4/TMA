@@ -1,0 +1,55 @@
+<!-- invoice_template.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .details {
+            margin-bottom: 20px;
+        }
+        .details p {
+            margin: 5px 0;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Invoice</h1>
+        </div>
+        <div class="details">
+            <h2>Appointment Details</h2>
+            <p><strong>Name:</strong> {{ appointment.user.full_name }}</p>
+            <p><strong>Email:</strong> {{ appointment.user.email }}</p>
+            <p><strong>Phone:</strong> {{ appointment.user.phone_number }}</p>
+            <p><strong>Doctor:</strong> {{ appointment.doctor.full_name }}</p>
+            <p><strong>Specialty:</strong> {{ appointment.doctor.specialty }}</p>
+            <p><strong>Service:</strong> {{ appointment.service.name }}</p>
+            <p><strong>Description:</strong> {{ appointment.service.description }}</p>
+            <p><strong>Date:</strong> {{ appointment.date }}</p>
+            <p><strong>Time:</strong> {{ appointment.time }}</p>
+            <p><strong>Price:</strong> ${{ appointment.service.price }}</p>
+        </div>
+        <div class="footer">
+            <p>Thank you for choosing our clinic!</p>
+        </div>
+    </div>
+</body>
+</html>

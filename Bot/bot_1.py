@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Define your bot token here
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_TOKEN = os.getenv('TOKEN')
 
 # Define your Mini App URL here
-MINI_APP_URL = os.getenv('MINI_APP_URL')
+MINI_APP_URL = os.getenv('MINI_APP_URL1')
 # Define your feedback URL here
 FEEDBACK_URL = os.getenv('FEEDBACK_URL')
 APPOINTMENTS_URL = os.getenv('APPOINTMENTS_URL')
@@ -24,7 +24,7 @@ APPOINTMENTS_URL = os.getenv('APPOINTMENTS_URL')
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
-        [InlineKeyboardButton("Launch Mini App", url=MINI_APP_URL)]
+        [InlineKeyboardButton("Open store front", web_app={"url": MINI_APP_URL})]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Welcome! Click the button below to launch the Mini App.', reply_markup=reply_markup)

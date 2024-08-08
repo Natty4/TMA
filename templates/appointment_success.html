@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="Appointment Success">
+    <meta name="author" content="Dental Clinic">
+    <meta name="keywords" content="appointment, success, dental clinic">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>Appointment Success</title>
+    <style>
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        .download-invoice {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #18ff9b;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+    <style>
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Appointment Successfully Booked!</h1>
+        <p>Thank you for booking your appointment. We look forward to seeing you.</p>
+        <a href="{% url 'generate_invoice' %}?appointment_id={{ appointment.id }}" class="download-invoice">Download Invoice</a>
+    </div>
+</body>
+</html>

@@ -6,13 +6,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Our Dental Clinic</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .card {
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            padding: 20px;
+            text-align: center;
+            width: 200px;
+            height: 100px; /* Ensures equal height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            background-color: #8eaffd;
+        }
+        .card h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2em;
+        }
+        @media (max-width: 600px) {
+            .card {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Welcome to Our Dental Clinic</h1>
-        <p>Please choose service:</p>
+        <p>Please choose a service:</p>
         <div id="serviceList" class="card-container">
-            <!-- service cards will be populated by JavaScript -->
+            <!-- Service cards will be populated by JavaScript -->
         </div>
     </div>
 
@@ -28,8 +70,10 @@
                         card.className = 'card';
                         card.innerHTML = `
                             <h3>${service.name}</h3>
-                            <button onclick="window.location.href='/book_appointment/?service=${service.id}'">Book Now</button>
                         `;
+                        card.onclick = function() {
+                            window.location.href = `/book_appointment_step1/?service=${service.id}`;
+                        };
                         serviceList.appendChild(card);
                     });
                 })

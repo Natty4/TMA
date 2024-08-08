@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Your Appointment - Step 1</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .card {
+            background-color: lightgray;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .card:hover {
+            background-color: #8eaffd;
+            color: white;
+        }
+        .selected {
+            border: 2px solid white;
+            background-color: #8eaffd;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Book Your Appointment</h1>
+
+        <div id="serviceCard" class="service-card">
+            <h2>{{ service.name }}</h2>
+            <p>{{ service.description }}</p>
+            <p><strong>Duration:</strong> {{ service.duration }} minutes</p>
+            <p><strong>Price:</strong> ${{ service.price }}</p>
+        </div>
+
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required>
+        <label for="time">Time:</label>
+        <input type="time" id="time" name="time" required>
+
+        <h1>Available Professionals</h1>
+        <div id="doctorList" class="card-container">
+            {% for doctor in service.professionals.all %}
+            <div class="card" onclick="selectDoctor({{ doctor.id }})">
+                <h3>{{ doctor.full_name }}</h3>
+                <p><strong>Specialty:</strong> {{ doctor.specialty }}</p>
+                <p><strong>Availability:</strong> {{ doctor.availability }}</p>
+                <p><strong>Rating:</strong>
+                    {% for star in "⭐️"|slice:":5" %}
+                        {% if forloop.counter <= doctor.rating %}
+                            {{ star }}
+                        {% endif %}
+                    {% endfor %}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <input type="hidden" id="selected_service" name="service" value="{{ service.id }}">
+        <input type="hidden" id="selected_doctor" name="doctor">
+
+        <button id="nextButton">Next</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('nextButton').addEventListener('click', function () {
+                const date = document.getElementById('date').value;
+                const time = document.getElementById('time').value;
+                const doctorId = document.getElementById('selected_doctor').value;
+
+                if (!date || !time || !doctorId) {
+                    alert('Please select a date, time, and doctor.');
+                    return;
+                }
+
+                window.location.href = `/book_appointment_step2/?service={{ service.id }}&doctor=${doctorId}&date=${date}&time=${time}`;
+            });
+        });
+
+        function selectDoctor(doctorId) {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            document.querySelector(`.card[onclick="selectDoctor(${doctorId})"]`).classList.add('selected');
+            document.getElementById('selected_doctor').value = doctorId;
+        }
+    </script>
+</body>
+</html>
