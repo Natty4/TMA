@@ -6,6 +6,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirm Appointment</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .error-card {
+            background-color: #fdd;
+            color: #d00;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: {% if error %} block {% else %} none {% endif %};
+        }
+        .service-summary, .doctor-summary, .appointment-summary {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        .service-summary h2, .doctor-summary h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+        }
+        .service-summary p, .doctor-summary p, .appointment-summary p {
+            margin: 5px 0;
+        }
+        .service-summary p, .doctor-summary p, .appointment-summary p {
+            font-size: 1em;
+            color: #666;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        form label {
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        form input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        form button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        form button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -27,9 +100,11 @@
             <h2>Doctor: {{ doctor.full_name }}</h2>
             <p><strong>Specialty:</strong> {{ doctor.specialty }}</p>
             <p><strong>Rating:</strong>
-                {% for star in "⭐️"|slice:":5" %}
+                {% for i in "12345" %}
                     {% if forloop.counter <= doctor.rating %}
-                        {{ star }}
+                        ⭐️
+                    {% else %}
+                        ☆
                     {% endif %}
                 {% endfor %}
             </p>

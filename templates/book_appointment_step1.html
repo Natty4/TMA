@@ -33,11 +33,39 @@
             flex-wrap: wrap;
             justify-content: space-between;
         }
+        .error-message {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .date-time-picker {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .date-time-picker button {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .date-time-picker input {
+            width: auto;
+            padding: 10px;
+            margin: 0 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Book Your Appointment</h1>
+
+        <div id="error-message" class="error-message" style="display: none;"></div>
 
         <div id="serviceCard" class="service-card">
             <h2>{{ service.name }}</h2>
@@ -46,10 +74,17 @@
             <p><strong>Price:</strong> ${{ service.price }}</p>
         </div>
 
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date" required>
-        <label for="time">Time:</label>
-        <input type="time" id="time" name="time" required>
+        <div class="date-time-picker">
+            <button id="prevDate">&#9664;</button>
+            <input type="text" id="date" name="date">
+            <button id="nextDate">&#9654;</button>
+        </div>
+
+        <div class="date-time-picker">
+            <button id="prevTime">&#9664;</button>
+            <input type="text" id="time" name="time" >
+            <button id="nextTime">&#9654;</button>
+        </div>
 
         <h1>Available Professionals</h1>
         <div id="doctorList" class="card-container">
@@ -59,9 +94,11 @@
                 <p><strong>Specialty:</strong> {{ doctor.specialty }}</p>
                 <p><strong>Availability:</strong> {{ doctor.availability }}</p>
                 <p><strong>Rating:</strong>
-                    {% for star in "⭐️"|slice:":5" %}
+                    {% for i in "12345" %}
                         {% if forloop.counter <= doctor.rating %}
-                            {{ star }}
+                            ⭐️
+                        {% else %}
+                            ☆
                         {% endif %}
                     {% endfor %}
                 </p>
@@ -77,13 +114,58 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const dateInput = document.getElementById('date');
+            const timeInput = document.getElementById('time');
+            const errorMessage = document.getElementById('error-message');
+
+            function updateDateInput(date) {
+                dateInput.value = date.toISOString().substring(0, 10);
+            }
+
+            function updateTimeInput(date) {
+                timeInput.value = date.toTimeString().substring(0, 5);
+            }
+
+            const today = new Date();
+            updateDateInput(today);
+            updateTimeInput(today);
+
+            document.getElementById('prevDate').addEventListener('click', function () {
+                today.setDate(today.getDate() - 1);
+                updateDateInput(today);
+            });
+
+            document.getElementById('nextDate').addEventListener('click', function () {
+                today.setDate(today.getDate() + 1);
+                updateDateInput(today);
+            });
+
+            document.getElementById('prevTime').addEventListener('click', function () {
+                today.setMinutes(today.getMinutes() - 1);
+                updateTimeInput(today);
+            });
+
+            document.getElementById('nextTime').addEventListener('click', function () {
+                today.setMinutes(today.getMinutes() + 1);
+                updateTimeInput(today);
+            });
+
+            dateInput.addEventListener('click', function () {
+                this.type = 'date';
+            });
+
+            timeInput.addEventListener('click', function () {
+                this.type = 'time';
+            });
+
             document.getElementById('nextButton').addEventListener('click', function () {
-                const date = document.getElementById('date').value;
-                const time = document.getElementById('time').value;
+                const date = dateInput.value;
+                const time = timeInput.value;
                 const doctorId = document.getElementById('selected_doctor').value;
 
                 if (!date || !time || !doctorId) {
-                    alert('Please select a date, time, and doctor.');
+                    errorMessage.textContent = 'Please select a date, time, and doctor.';
+                    errorMessage.style.display = 'block';
                     return;
                 }
 

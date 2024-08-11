@@ -5,11 +5,15 @@ from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from .models import Auser, Service, Doctor, Appointment, Feedback
 from .forms import AppointmentForm, AuserForm
-import requests
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 import io
+import requests
+from datetime import datetime
 
 
 
@@ -181,34 +185,67 @@ def generate_invoice(request):
     except Appointment.DoesNotExist:
         return HttpResponse("Appointment not found", status=404)
 
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="invoice_{appointment_id}.pdf"'
-
+    # Create the PDF object, using the BytesIO buffer
     buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
 
-    # Draw invoice details
-    p.drawString(100, height - 100, f"Invoice for Appointment #{appointment_id}")
-    p.drawString(100, height - 140, f"Name: {appointment.user.full_name}")
-    p.drawString(100, height - 180, f"Email: {appointment.user.email}")
-    p.drawString(100, height - 220, f"Phone: {appointment.user.phone_number}")
-    p.drawString(100, height - 260, f"Service: {appointment.service.name}")
-    p.drawString(100, height - 300, f"Doctor: {appointment.doctor.full_name}")
-    p.drawString(100, height - 340, f"Date: {appointment.date.strftime('%Y-%m-%d')}")
-    p.drawString(100, height - 380, f"Time: {appointment.time.strftime('%H:%M')}")
-    p.drawString(100, height - 420, f"Price: ${appointment.service.price}")
-    p.drawString(100, height - 460, f"Payment Status: {appointment.payment_status}")
+    # Header and Footer (can be dynamic in the future)
+    header_text = f"Invoice #{appointment_id} - {datetime.now().strftime('%Y-%m-%d')}"
+    footer_text = "Thank you for choosing our clinic!"
 
-    p.showPage()
-    p.save()
+    # Set up styles
+    styles = getSampleStyleSheet()
+    elements = []
 
-    buffer.seek(0)
+    # Header
+    elements.append(Paragraph(header_text, styles['Title']))
+    elements.append(Spacer(1, 12))
+
+    # Table with appointment details
+    data = [
+        ['Name:', appointment.user.full_name],
+        ['Email:', appointment.user.email],
+        ['Phone:', appointment.user.phone_number],
+        ['Service:', appointment.service.name],
+        ['Doctor:', appointment.doctor.full_name],
+        ['Date:', appointment.date.strftime('%Y-%m-%d')],
+        ['Time:', appointment.time.strftime('%H:%M')],
+        ['Price:', f"${appointment.service.price}"],
+        ['Payment Status:', appointment.payment_status],
+    ]
+
+    table = Table(data, hAlign='LEFT')
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.lightgrey),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.lightslategray),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(table)
+
+    elements.append(Spacer(1, 12))
+
+    # Footer
+    elements.append(Paragraph(footer_text, styles['Normal']))
+
+    # Build the PDF
+    doc.build(elements)
+
+    # Get the value of the BytesIO buffer and write it to the response
     pdf = buffer.getvalue()
     buffer.close()
 
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="invoice_{appointment_id}.pdf"'
     response.write(pdf)
     return response
+
+
+
 
 
 
