@@ -24,7 +24,7 @@ APPOINTMENTS_URL = os.getenv('APPOINTMENTS_URL')
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
-        [InlineKeyboardButton("Open store front", web_app={"url": MINI_APP_URL})]
+        [InlineKeyboardButton("Schedule Now⏲️", web_app={"url": MINI_APP_URL})]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Welcome! Click the button below to launch the Mini App.', reply_markup=reply_markup)
