@@ -10,47 +10,40 @@
     <meta name="keywords" content="appointment, success, dental clinic">
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% comment %} <link rel="stylesheet" href="{% static 'css/style.css' %}"> {% endcomment %}
     <title>Appointment Success</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background-color);
-            color: var(--text-color);
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --button-bg-color: #18ff9b;
+            --button-text-color: white;
         }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+        }
+
         .container {
             text-align: center;
             padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-            background: var(--box-background-color);
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        h1 {
-            font-size: 1.8em;
-            color: var(--h1-color, #28a745); /* fallback color */
-            margin-bottom: 20px;
-        }
-        p {
-            font-size: 1em;
-            color: var(--text-color, #666);
-            margin-bottom: 20px;
-        }
+
         .download-invoice {
             display: inline-block;
             padding: 10px 20px;
-            background-color: var(--button-color, #007bff);
-            color: var(--button-text-color, #fff);
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
             text-decoration: none;
             border-radius: 5px;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
+            margin-top: 20px;
+            transition: background-color 0.2s;
         }
+
         .download-invoice:hover {
-            background-color: var(--button-hover-color, #0056b3);
+            background-color: darken(var(--button-bg-color), 10%);
         }
     </style>
 </head>
@@ -61,19 +54,19 @@
         <a href="{% url 'generate_invoice' %}?appointment_id={{ appointment.id }}" class="download-invoice">Download Invoice</a>
     </div>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Sync with Telegram's theme
-        const tg = window.Telegram.WebApp;
-        const themeParams = tg.themeParams;
+        document.addEventListener("DOMContentLoaded", function () {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
 
-        // Set CSS variables based on Telegram's theme
-        document.body.style.setProperty('--background-color', themeParams.bg_color || '#f9f9f9');
-        document.body.style.setProperty('--text-color', themeParams.text_color || '#333');
-        document.body.style.setProperty('--box-background-color', themeParams.secondary_bg_color || '#fff');
-        document.body.style.setProperty('--h1-color', themeParams.hint_color || '#28a745');
-        document.body.style.setProperty('--button-color', themeParams.button_color || '#007bff');
-        document.body.style.setProperty('--button-text-color', themeParams.button_text_color || '#fff');
-        document.body.style.setProperty('--button-hover-color', themeParams.button_hover_color || '#0056b3');
+            const theme = tg.themeParams;
+
+            document.documentElement.style.setProperty('--bg-color', theme.bg_color || '#ffffff');
+            document.documentElement.style.setProperty('--text-color', theme.text_color || '#000000');
+            document.documentElement.style.setProperty('--button-bg-color', theme.button_color || '#18ff9b');
+            document.documentElement.style.setProperty('--button-text-color', theme.button_text_color || 'white');
+        });
     </script>
 </body>
 </html>

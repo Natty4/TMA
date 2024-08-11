@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirm Appointment</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% comment %} <link rel="stylesheet" href="{% static 'css/style.css' %}"> {% endcomment %}
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -79,6 +79,8 @@
             background-color: #0056b3;
         }
     </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="{% static 'js/telegram-theme-sync.js' %}"></script>
 </head>
 <body>
     <div class="container">
