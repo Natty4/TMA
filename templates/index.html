@@ -78,7 +78,21 @@
         </div>
     </div>
 
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const tg = window.Telegram.WebApp;
+            tg.ready(); // This signals Telegram that your web app is ready.
+            // Optionally, you can customize the theme here
+            const theme = tg.themeParams;
+
+            // Applying the theme
+            document.body.style.backgroundColor = theme.bg_color;
+            document.body.style.color = theme.text_color;
+        });
+    </script>
+    <script>
+
         function applyTheme() {
             const theme = window.Telegram.WebApp.themeParams || {};
             document.documentElement.style.setProperty('--bg-color', theme.bg_color || '#ffffff');
@@ -90,9 +104,9 @@
         }
 
         window.Telegram.WebApp.ready();
-        applyTheme();
+        applyTheme(); 
 
-        ocument.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
             // Fetch services
             fetch('/get_services/')
                 .then(response => response.json())
@@ -101,11 +115,9 @@
                     data.services.forEach(service => {
                         const card = document.createElement('div');
                         card.className = 'card';
-                        card.innerHTML = 
-                            <h3>${service.name}</h3>
-                        ;
+                        card.innerHTML = `<h3>${service.name}</h3>`;
                         card.onclick = function() {
-                            window.location.href = /book_appointment_step1/?service=${service.id};
+                            window.location.href = `/book_appointment_step1/?service=${service.id}/`;
                         };
                         serviceList.appendChild(card);
                     });
@@ -117,5 +129,3 @@
     </script>
 </body>
 </html>
-
-
