@@ -117,7 +117,7 @@
                         card.className = 'card';
                         card.innerHTML = `<h3>${service.name}</h3>`;
                         card.onclick = function() {
-                            window.location.href = `/book_appointment_step1/?service=${service.id}/`;
+                            window.location.href = `/book_appointment_step1/?service=${service.id}`;
                         };
                         serviceList.appendChild(card);
                     });
