@@ -4,7 +4,14 @@
         "src": "Abooking/wsgi.py",
         "use": "@vercel/python",
         "config": { "maxLambdaSize": "15mb", "runtime": "python3.10" }
-      }],
+      },
+      {
+        "src": "manage.py",
+        "use": "@vercel/python",
+        "config": { "maxLambdaSize": "15mb" }
+      }
+    
+    ],
     "routes": [
       {
         "src": "/(.*)",
@@ -13,7 +20,17 @@
         {
             "src": "/static/(.*)",
             "dest": "Abooking/static/$1"
-        }
+        },
+        { "src": "/(.*)", "dest": "manage.py" }
     ]
 
+}
+
+{
+  "builds": [
+    
+  ],
+  "routes": [
+    
+  ]
 }
