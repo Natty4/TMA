@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Business Listing
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2a9d8f;
+        }
+        
+        .business-list {
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        
+        .business-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            margin: 20px 10px;
+            padding: 15px;
+            transition: transform 0.3s ease;
+            max-width: 800px;
+            text-align: left;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .business-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .business-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        
+        .business-details {
+            color: #333;
+            margin-top: 40px;
+            flex-grow: 1;
+            margin-left: 15px;
+        }
+        
+        .business-details h2 {
+            font-size: 18px;
+            margin: 0;
+        }
+        
+        .business-details p {
+            font-size: 14px;
+            margin: 5px 0 0;
+        }
+
+        .business-details .green {
+            color: green;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Available Businesses</h1>
+        <div class="business-list">
+            {% for business in businesses %}
+            <div class="business-card" onclick="viewServices({{ business.id }})">
+                <img src="https://i.pinimg.com/736x/ea/b3/01/eab301eb1d4bce26a0f40cb0b60c05b3.jpg" alt="{{ business.name }} logo" class="business-logo">
+                <div class="business-details">
+                    <h2>{{ business.name }}</h2>
+                    <p><strong class="green">({{ business.num_services }})</strong> services available</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function viewServices(businessId) {
+            window.location.href = `/businesses/${businessId}/services/`;
+        }
+    </script>
+{% endblock %}

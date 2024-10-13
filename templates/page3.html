@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ service.name }} Details
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2a9d8f;
+        }
+
+        .service-card {
+            text-align: left;
+            background-color: #fff;
+            border-bottom: 1px solid #ddd;
+            border-top: 1px solid #ddd;
+            margin: 20px 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .service-card h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .service-card p {
+            color: #666;
+            font-size: 9px;
+        }
+
+        .service-card p strong {
+            font-size: 14px;
+        }
+
+        .date-picker {
+            max-width: 800px;
+            margin-right: 20px;
+        }
+
+        .date-picker label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .date-picker input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .professionals {
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .professional-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px 10px;
+            padding: 20px;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .professional-card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            margin-bottom: 15px;
+            float: left;
+        }
+
+        .professional-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .professional-card h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .professional-card p {
+            color: #666;
+            font-size: 9px;
+        }
+
+        .professional-card p strong {
+            font-size: 14px;
+        }
+
+        .time-slots {
+            margin-top: 10px;
+        }
+
+        .time-slot {
+            background-color: #32465a;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .action-buttons {
+            margin-top: 20px;
+        }
+
+        #book-now {
+            background-color: #32465a;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        #book-now:hover {
+            background-color: #1e3348;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="service-card">
+            <h3>{{ service.name }}</h3>
+            <p>DURATION</p>
+            <p><strong>Approximately {{ service.duration }} minutes</strong></p>
+            <p>BOOKING FEE</p>
+            <p><strong>${{ service.price }}</strong></p>
+        </div>
+
+        <div class="date-picker">
+            <label for="appointment-date">Select Appointment Date:</label>
+            <input type="date" id="appointment-date">
+        </div>
+
+        <h2>Available Professionals</h2>
+        <div class="professionals">
+            {% for professional in professionals %}
+            <div class="professional-card">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRN-N0MRCfNGut2G2dOUrHxh0JnITR4pji5AA&s" alt="{{ professional.full_name }}">
+                <p>{{ professional.role }}</p>
+                <p><strong>{{ professional.full_name }}</strong></p>
+
+                <div class="time-slots">
+                    {% for slot in professional.available_slots|slice:":6" %}
+                    <button class="time-slot" onclick="selectSlot('{{ professional.id }}', '{{ slot }}')">
+                        {{ slot }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% empty %}
+            <p>No professionals available. Please select another date.</p>
+            {% endfor %}
+        </div>
+
+        <div class="action-buttons">
+            <button id="book-now" onclick="submitBooking()">Book Now</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedProfessional = null;
+        let selectedTimeSlot = null;
+
+        function selectSlot(professionalId, time) {
+            selectedProfessional = professionalId;
+            selectedTimeSlot = time;
+            alert(`Selected time slot: ${time}`);
+        }
+
+        function submitBooking() {
+            if (selectedProfessional && selectedTimeSlot) {
+                const date = document.getElementById('appointment-date').value;
+                if (date) {
+                    window.location.href = `/businesses/{{ business_id }}/services/{{ service.id }}/professionals/${selectedProfessional}/booking/${date}/${selectedTimeSlot}/`;
+                } else {
+                    alert('Please select a date.');
+                }
+            } else {
+                alert('Please select a professional and time slot.');
+            }
+        }
+    </script>
+{% endblock %}

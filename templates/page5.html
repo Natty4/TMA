@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Booking Summary
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2a9d8f;
+        }
+        .card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 {
+            font-size: 1.5rem;
+            color: #2a9d8f;
+            margin-bottom: 15px;
+        }
+        .card h3 {
+            color: #1e3348;
+            margin-bottom: 15px;
+        }
+        .card p {
+            color: #666;
+            font-size: 10px;
+        }
+        .card p strong {
+            color: #333;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"], input[type="radio"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            margin-top: 5px;
+        }
+        input[type="radio"] {
+            width: auto;
+        }
+        .btn-submit {
+            display: inline-block;
+            background-color: #32465a;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-submit:hover {
+            background-color: #1e3348;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+            background-color: #f8d7da;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px 10px;
+            padding: 15px;
+            transition: transform 0.3s ease;
+            max-width: 100%;
+        }
+        /* Responsive design */
+        @media (min-width: 768px) {
+            .cards-wrapper {
+                display: flex;
+                gap: 20px;
+            }
+            .card {
+                flex: 1;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Booking Summary</h1>
+        {% if error_message %}
+        <div class="error-message">
+            <p>{{ error_message }}</p>
+        </div>
+        {% endif %}
+        <div class="cards-wrapper">
+
+            <!-- Card 1: Personal Details -->
+            <div class="card">
+                <h3>Your Details</h3>
+                <p>NAME</p>
+                <p><strong>{{ user_data.full_name }}</strong></p>
+                <p>EMAIL</p>
+                <p><strong>{{ user_data.email }}</strong></p>
+                <p>PHONE</p>
+                <p><strong>{{ user_data.phone_number }}</strong></p>
+                <p>PASSPORT/ID</p>
+                <p><strong>{% if user_data.passport_id %}{{ user_data.passport_id }}{% else %}--{% endif %}</strong></p>
+                <p>NOTES</p>
+                <p><strong>{% if user_data.notes %}{{ user_data.notes }}{% else %}--{% endif %}</strong></p>
+            </div>
+
+            <!-- Card 2: Booking Summary -->
+            <div class="card">
+                <h3>Booking Summary</h3>
+                <p>PROFESSIONAL</p>
+                <p><strong>{{ professional.full_name }}</strong></p>
+                <p>SERVICE</p>
+                <p><strong>{{ service.name }}</strong></p>
+                <p>APPOINTMENT</p>
+                <p><strong>{{ date }} at {{ time }}</strong></p>
+                <br>
+                <p><strong>Booking Fee: {{ service.price }} ETB</strong></p>
+                <p><strong>Tax (0%): {% widthratio service.price 0 1 %} ETB</strong></p>
+                <hr>
+                <p><strong>Total Fee: {% widthratio service.price 1 1 %} ETB</strong></p>
+            </div>
+
+            <!-- Card 3: Payment Options -->
+            <div class="card">
+                <h3>Payment</h3>
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="payment_method" value="pay_on_arrival" required
+                                   onchange="document.getElementById('card-details').style.display = 'none';">
+                            Pay on Arrival
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="radio" name="payment_method" value="card_payment" required
+                                   onchange="document.getElementById('card-details').style.display = this.checked ? 'block' : 'none';">
+                            Card Payment
+                        </label>
+                    </div>
+
+                    <div id="card-details" style="display:none;">
+                        <h3>Card Details</h3>
+                        <div class="form-group">
+                            <label for="card_number">Card Number</label>
+                            <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
+                        </div>
+                        <div class="form-group">
+                            <label for="expiry_date">Expiry Date</label>
+                            <input type="text" id="expiry_date" name="expiry_date" placeholder="MM/YY">
+                        </div>
+                        <div class="form-group">
+                            <label for="cvv">CVV</label>
+                            <input type="text" id="cvv" name="cvv" placeholder="123">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Proceed</button>
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+{% endblock %}

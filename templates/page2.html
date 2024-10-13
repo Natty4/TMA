@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Services
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2a9d8f;
+        }
+
+        .service-list {
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        
+        .service-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            text-align: left;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .service-card h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .service-card p {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>{{ business.name }}</h1>
+        <p>{{ business.address }}</p>
+        <h5>What type of appointment would you like to book?</h5>
+        <div class="service-list">
+            {% for service in services %}
+            <div class="service-card" onclick="viewServiceDetails({{ business.id }}, {{ service.id }})">
+                <h2>{{ service.name }}</h2>
+                <p><strong>Duration:</strong> {{ service.duration }} minutes</p>
+                <p><strong>Price:</strong> ${{ service.price }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function viewServiceDetails(businessId, serviceId) {
+            window.location.href = `/businesses/${businessId}/services/${serviceId}/`;
+        }
+    </script>
+{% endblock %}
