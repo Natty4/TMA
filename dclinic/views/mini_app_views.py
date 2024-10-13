@@ -3,7 +3,7 @@ from django.http import Http404
 import requests
 import json
 from datetime import timedelta, datetime
-API_BASE_URL = 'http://127.0.0.1:8000/api/'  # Replace with actual base URL
+API_BASE_URL = 'https://tminiapp-1a4r6fw7y-scotts-projects-1f569b96.vercel.app/api/'  # Replace with actual base URL
 
 # Page 1: Business Listing
 def business_list_view(request):
