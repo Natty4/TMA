@@ -29,7 +29,11 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = ['*']
-
+if DEBUG:
+    API_BASE_URL = 'http://127.0.0.1:8000/api/'
+else:
+    API_BASE_URL = 'https://tminiapp-1a4r6fw7y-scotts-projects-1f569b96.vercel.app/api/'
+    
 
 # Application definition
 
