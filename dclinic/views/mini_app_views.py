@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404
 import requests
@@ -5,7 +6,8 @@ import json
 from datetime import timedelta, datetime
 from django.conf import settings
 
-API_BASE_URL = settings.API_BASE_URL #"https://zminiapp.vercel.app/api/"
+#API_BASE_URL = settings.API_BASE_URL
+API_BASE_URL = os.getenv('API_BASE_URL', 'https://zminiapp.vercel.app/api/')
 
 
 def home_view(request):
