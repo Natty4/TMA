@@ -5,7 +5,7 @@ import json
 from datetime import timedelta, datetime
 from django.conf import settings
 
-API_BASE_URL = settings.API_BASE_URL
+API_BASE_URL = "https://zminiapp.vercel.app/api/"
 
 
 def home_view(request):
