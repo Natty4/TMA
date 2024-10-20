@@ -23,19 +23,5 @@
       "src": "/(.*)",
       "dest": "Abooking/wsgi.py"
     }
-  ],
-
-  "env": {
-    "DJANGO_SETTINGS_MODULE": "Abooking.settings"
-  },
-
-  "build": {
-    "env": {
-      "PYTHON_VERSION": "3.8"
-    },
-    "commands": [
-      "pip install -r requirements.txt",  
-      "python manage.py collectstatic --noinput"  
-    ]
-  }
+  ]
 }
