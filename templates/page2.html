@@ -66,7 +66,7 @@
             <div class="service-card" onclick="viewServiceDetails({{ business.id }}, {{ service.id }})">
                 <h2>{{ service.name }}</h2>
                 <p><strong>Duration:</strong> {{ service.duration }} minutes</p>
-                <p><strong>Price:</strong> ${{ service.price }}</p>
+                <p><strong>Fee:</strong> {{ service.price }} ETB</p>
             </div>
             {% endfor %}
         </div>
