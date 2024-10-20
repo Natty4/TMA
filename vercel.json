@@ -4,7 +4,7 @@
     {
       "src": "Abooking/wsgi.py",
       "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "runtime": "python3.10" }
+      "config": { "maxLambdaSize": "15mb", "runtime": "python3.8" }
     },
     {
       "src": "build_files.sh",
@@ -23,5 +23,19 @@
       "src": "/(.*)",
       "dest": "Abooking/wsgi.py"
     }
-  ]
+  ],
+
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "Abooking.settings"
+  },
+
+  "build": {
+    "env": {
+      "PYTHON_VERSION": "3.8"
+    },
+    "commands": [
+      "pip install -r requirements.txt",  
+      "python manage.py collectstatic --noinput"  
+    ]
+  }
 }
