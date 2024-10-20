@@ -1,4 +1,8 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+
 
 
 class Auser(models.Model):
@@ -77,7 +81,6 @@ class Professional(models.Model):
         return self.full_name
 
 class ProfessionalAvailability(models.Model):
-    # Availability of a professional on a specific date and time default is the same as the business operational hours
     professional = models.ForeignKey(Professional, on_delete=models.CASCADE, related_name='availabilities')
     date = models.DateField()
     start_time = models.TimeField()
@@ -107,32 +110,48 @@ class ProfessionalAvailability(models.Model):
             start_time__lt=self.end_time,
             end_time__gt=self.start_time
         ).exists()
+
+    def clean(self):
+        """Custom validation logic goes here. This method is called before saving the model."""
+        # Check if the availability is within business hours
+        # if not self.is_within_business_hours():
+        #     raise ValidationError(
+        #         _("The availability for %(professional)s on %(date)s must be within business hours."),
+        #         params={'professional': self.professional.full_name, 'date': self.date},
+        #     )
         
+        # Check for overlapping availability
+        if self.is_overlapping():
+            raise ValidationError(
+                _("The availability for %(professional)s on %(date)s from %(start_time)s to %(end_time)s overlaps with another availability."),
+                params={
+                    'professional': self.professional.full_name,
+                    'date': self.date,
+                    'start_time': self.start_time,
+                    'end_time': self.end_time
+                },
+            )
+        
+        # Ensure that the start time is before the end time
+        if self.start_time >= self.end_time:
+            raise ValidationError(
+                _("The start time %(start_time)s must be before the end time %(end_time)s."),
+                params={'start_time': self.start_time, 'end_time': self.end_time}
+            )
+
     def save(self, *args, **kwargs):
-        if not self.is_within_business_hours():
-            raise ValueError('Professional availability must be within business hours ---Save', f"{self.is_within_business_hours()}")
-        if self.is_overlapping():
-            raise ValueError('Professional availability must not overlap with existing availability')
+        # Call the clean method to perform validation before saving
+        self.clean()
         super().save(*args, **kwargs)
-        
+
     def delete(self, *args, **kwargs):
+        # Prevent deletion of past availability
         if self.date < timezone.now().date():
-            raise ValueError('Cannot delete past availability')
+            raise ValidationError(
+                _("Cannot delete availability for a past date: %(date)s."),
+                params={'date': self.date}
+            )
         super().delete(*args, **kwargs)
-        
-    def update(self, *args, **kwargs):
-        if not self.is_within_business_hours():
-            raise ValueError('Professional availability must be within business hours ---Update')
-        if self.is_overlapping():
-            raise ValueError('Professional availability must not overlap with existing availability')
-        super().update(*args, **kwargs)
-        
-    def create(self, *args, **kwargs):
-        if not self.is_within_business_hours():
-            raise ValueError('Professional availability must be within business hours ---Create')
-        if self.is_overlapping():
-            raise ValueError('Professional availability must not overlap with existing availability')
-        super().create(*args, **kwargs)
     
 
 class Appointment(models.Model):
