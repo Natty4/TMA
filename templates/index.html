@@ -52,7 +52,7 @@ Home - Service Platform
         text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
     }
 
-    .action-button {
+    {% comment %} .action-button {
         position: absolute;
         color: white;
         padding: 15px;
@@ -71,10 +71,34 @@ Home - Service Platform
         text-align: center; /* Center text */
         width: 100px; /* Equal width for perfect circle */
         height: 100px; /* Equal height for perfect circle */
+        margin: 100px; /* Adjusted position */
+    } {% endcomment %}
+
+
+    .action-button {
+        position: absolute;
+        bottom: 20px;
+        color: white;
+        padding: 15px;
+        border: none;
+        border-radius: 50%; /* Make buttons circular */
+        font-size: 1.5em;
+        cursor: pointer;
+        text-decoration: none;
+        transition: box-shadow 0.3s ease;
+        z-index: 2; /* Ensure button is above the image */
+        box-shadow: 0 0 15px rgba(40, 167, 69, 0.5); /* Initial glow effect */
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Center text */
+        text-align: center; /* Center text */
+        width: 100px; /* Equal width for perfect circle */
+        height: 100px; /* Equal height for perfect circle */
+        
     }
 
     .action-button:hover {
-        box-shadow: 0 0 30px rgba(255, 255, 0, 0.7); /* Hover glow effect */
+        box-shadow: 0 0 30px rgba(40, 167, 69, 0.7); /* Hover glow effect */
         animation-play-state: paused; /* Pause animation on hover */
     }
 
@@ -184,10 +208,8 @@ Home - Service Platform
                 <p>Your gateway to the best services.</p>
             </div>
 
-            <a href="{% url 'business_list' %}" class="action-button button1">Explore</a>
-            <a href="{% url 'business_list' %}" class="action-button button2">Discover</a>
-            <a href="{% url 'business_list' %}" class="action-button button3">Find</a>
-            <a href="{% url 'business_list' %}" class="action-button button4">Get Started</a>
+            
+            <a href="{% url 'business_list' %}" class="action-button">Get Started</a>
         </div>
     </div>
 
