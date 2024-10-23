@@ -29,6 +29,9 @@
         }
         
         .service-card {
+            display: flex; /* Use flexbox to align items */
+            justify-content: space-between; /* Space between content and the arrow */
+            align-items: center; /
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -53,6 +56,21 @@
             color: #666;
             font-size: 14px;
         }
+        
+        
+        .arrow {
+            font-size: 30px;
+            color: #000; 
+            margin-left: auto; 
+            transition: transform 0.3s ease; 
+        }
+        
+        .service-card:hover .arrow {
+            transform: translateX(17px); 
+            color: #28A745; /* Change color on hover */
+            
+        }
+
     </style>
 {% endblock %}
 
@@ -64,9 +82,11 @@
         <div class="service-list">
             {% for service in services %}
             <div class="service-card" onclick="viewServiceDetails({{ business.id }}, {{ service.id }})">
-                <h2>{{ service.name }}</h2>
-                <p><strong>Duration:</strong> {{ service.duration }} minutes</p>
-                <p><strong>Fee:</strong> {{ service.price }} ETB</p>
+                <div class="service-info"> <!-- New container for the text -->
+                    <h2>{{ service.name }}</h2>
+                    {% comment %} <p><strong>Duration:</strong> approximately {{ service.duration }} minutes</p> {% endcomment %}
+                </div>
+                <span class="arrow"> &gt; </span>  <!-- Arrow stays aligned to the right -->
             </div>
             {% endfor %}
         </div>

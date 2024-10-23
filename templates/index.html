@@ -80,14 +80,14 @@ Home - Service Platform
         bottom: 20px;
         color: white;
         padding: 15px;
-        border: none;
+        border: 2px solid rgba(40, 167, 69, .7);
         border-radius: 50%; /* Make buttons circular */
         font-size: 1.5em;
         cursor: pointer;
         text-decoration: none;
         transition: box-shadow 0.3s ease;
         z-index: 2; /* Ensure button is above the image */
-        box-shadow: 0 0 15px rgba(40, 167, 69, 0.5); /* Initial glow effect */
+        box-shadow: 0 0 30px rgba(40, 167, 69, .7); /* Initial glow effect */
         display: flex;
         align-items: center;
         justify-content: center; /* Center text */
@@ -98,7 +98,7 @@ Home - Service Platform
     }
 
     .action-button:hover {
-        box-shadow: 0 0 30px rgba(40, 167, 69, 0.7); /* Hover glow effect */
+        box-shadow: 0 0 50px rgba(40, 167, 69, .9); /* Hover glow effect */
         animation-play-state: paused; /* Pause animation on hover */
     }
 
@@ -204,12 +204,12 @@ Home - Service Platform
         <div class="banner">
             <img src="https://a-teaminsight.com/app/uploads/2024/05/data-cloud-11.png" alt="Service Platform Background">
             <div class="card">
-                <h1>Welcome to Our Booking Platform</h1>
+                <h1>Welcome to Ez Booking Platform</h1>
                 <p>Your gateway to the best services.</p>
             </div>
 
             
-            <a href="{% url 'business_list' %}" class="action-button">Get Started</a>
+            <a href="{% url 'business_list' %}" class="action-button"><strong>Get Started</strong></a>
         </div>
     </div>
 

@@ -120,7 +120,7 @@
         }
 
         .time-slot {
-            background-color: #28A745;
+            background-color: #b0c9c9;
             border: none;
             color: white;
             padding: 10px 20px;
@@ -130,6 +130,20 @@
             margin: 4px 2px;
             cursor: pointer;
             border-radius: 8px;
+            transition: background-color 0.3s; /* Smooth transition */
+        }
+        
+        .time-slot:hover {
+            background-color: #28A745; /* Color on hover */
+        }
+        
+        .time-slot:active,
+        .time-slot:focus {
+            background-color: #28A745; /* Same color when active or focused */
+        }
+        
+        .time-slot.selected {
+            background-color: #28A745; /* Color for selected */
         }
 
         .action-buttons {
@@ -152,6 +166,19 @@
         #book-now:hover {
             background-color: #1e3348;
         }
+
+        .star-rating {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .star {
+            color: #FFD700; /* Gold color */
+            font-size: 16px; /* Adjust as needed */
+            margin-right: 2px;
+        }
+
     </style>
 {% endblock %}
 
@@ -178,6 +205,18 @@
                 <p>{{ professional.role }}</p>
                 <p><strong>{{ professional.full_name }}</strong></p>
 
+                <!-- Star Rating Section -->
+                <div class="star-rating">
+                    {% for star in "12345"|make_list %}
+                        <span class="star">
+                            {% if star|add:0|floatformat:1 <= professional.rating %}
+                                &#9733;  <!-- Filled star -->
+                            {% else %}
+                                &#9734;  <!-- Unfilled star -->
+                            {% endif %}
+                        </span>
+                    {% endfor %}
+                </div>
                 <div class="time-slots">
                     {% for slot in professional.available_slots|slice:":6" %}
                     <button class="time-slot" onclick="selectSlot('{{ professional.id }}', '{{ slot }}')">
@@ -203,7 +242,15 @@
         function selectSlot(professionalId, time) {
             selectedProfessional = professionalId;
             selectedTimeSlot = time;
+            const buttons = document.querySelectorAll('.time-slot');
+            buttons.forEach(button => {
+                button.classList.remove('selected'); // Remove selected class from all buttons
+            });
+            
+            const selectedButton = event.target; 
+            selectedButton.classList.add('selected'); 
             alert(`Selected time slot: ${time}`);
+
         }
 
         function submitBooking() {

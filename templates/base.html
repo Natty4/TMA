@@ -5,17 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}My Site{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <header>
+        <div class="toggler" id="back-toggler">
+            <a href="javascript:void(0)" onclick="goBack()">
+                <!-- Left-pointing SVG arrow -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <path d="M15 19l-7-7 7-7" fill="var(--arrow-color)" />
+                </svg>
+            </a>
+        </div>
+
+        
     </header>
     <main>
         {% block content %}{% endblock %}
     </main>
     
-    <script src="{% static 'scripts.js' %}"></script>
+    <script src="{% static 'js/scripts.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

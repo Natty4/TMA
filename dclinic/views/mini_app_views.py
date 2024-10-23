@@ -221,6 +221,7 @@ def booking_summary_view(request, business_id, service_id, professional_id, date
         )
         if response.status_code == 201:
             appointment = response.json()
+            request.session['booking_successful'] = True    
             return redirect('thank_you', appointment_id=appointment['id'])
         else:
             error_message = response.json().get('error', 'Error creating appointment')
@@ -233,7 +234,6 @@ def booking_summary_view(request, business_id, service_id, professional_id, date
                 'ending_time': end_time_dt.strftime('%H:%M'),
                 'error_message': error_message
             })
-
     return render(request, 'page5.html', {
         'service': service,
         'professional': professional,
@@ -243,7 +243,12 @@ def booking_summary_view(request, business_id, service_id, professional_id, date
     })
 
 # Page 6: Thank You Page
+# this view can only be accessed after a successful booking
+
 def thank_you_view(request, appointment_id):
+    if not request.session.get('booking_successful'):
+        return redirect('home')
+    
     response = requests.get(f'{API_BASE_URL}appointments/{appointment_id}/')
     if response.status_code == 200:
         appointment = response.json()
@@ -252,6 +257,7 @@ def thank_you_view(request, appointment_id):
         date = appointment['date']
         time = appointment['starting_time'] + ' - ' + appointment['ending_time']
 
+        del request.session['booking_successful']
         return render(request, 'page6.html', {
             'appointment': appointment,
             'service': service,
