@@ -10,9 +10,12 @@
       }
     },
     {
-      "src": "/(.*)",
-      "use": "@vercel/dynamic"
-  }
+      "src": "staticfiles/**",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "staticfiles"
+      }
+    }
   ],
   "routes": [
     {
