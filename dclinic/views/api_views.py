@@ -94,6 +94,33 @@ class BusinessProfessionalsView(APIView):
         professionals = Professional.objects.filter(business=business)
         serializer = ProfessionalSerializer(professionals, many=True)
         return Response(serializer.data)
+    
+class BusinessServiceProfessionalsView(APIView):
+    def get(self, request, business_id, service_id):
+        try:
+            # Retrieve the specific business
+            business = Business.objects.get(pk=business_id)
+        except Business.DoesNotExist:
+            return Response({'detail': 'Business not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            # Retrieve the specific service within the business
+            service = Service.objects.get(pk=service_id, business=business, is_active=True)
+        except Service.DoesNotExist:
+            return Response({'detail': 'Service not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Filter professionals related to both the business and specific service
+        professionals = Professional.objects.filter(business=business, services=service)
+
+        # Serialize the data for services and professionals
+        service_serializer = ServiceSerializer(service)
+        professional_serializer = ProfessionalSerializer(professionals, many=True)
+        
+        # Return both service and professionals in the response
+        return Response({
+            'service': service_serializer.data,
+            'professionals': professional_serializer.data
+        })
 
 class BusinessProfessionalAvailabilityView(APIView):
     def get(self, request, pk, professional_id=None):
@@ -205,9 +232,31 @@ class ProfessionalAvailabilityView(APIView):
         return Response(serializer.data)
 
 
+# class AppointmentListView(APIView):
+#     def get(self, request):
+#         appointments = Appointment.objects.all()
+#         serializer = AppointmentSerializer(appointments, many=True)
+#         return Response(serializer.data)
+
 class AppointmentListView(APIView):
     def get(self, request):
+        # Get query parameters for filtering
+        professional_id = request.query_params.get('professional_id')
+        business_id = request.query_params.get('business_id')
+        service_id = request.query_params.get('service_id')
+        
+        # Initialize queryset
         appointments = Appointment.objects.all()
+        
+        # Apply filters based on query parameters if provided
+        if professional_id:
+            appointments = appointments.filter(professional_id=professional_id)
+        if business_id:
+            appointments = appointments.filter(business_id=business_id)
+        if service_id:
+            appointments = appointments.filter(service_id=service_id)
+        
+        # Serialize and return the filtered queryset
         serializer = AppointmentSerializer(appointments, many=True)
         return Response(serializer.data)
 
