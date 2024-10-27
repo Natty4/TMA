@@ -18,37 +18,49 @@ API_BASE_URL = os.getenv('API_BASE_URL', 'https://zminiapp.vercel.app/api/')
 
 def home_view(request):
     return render(request, 'index.html')
+
+
 # Page 1: Business Listing
 def business_list_view(request):
-    response = requests.get(f'{API_BASE_URL}businesses/')
+    def timed_request(url):
+        start_time = time.time()
+        response = requests.get(url)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        logger.info(f"API request to {url} took {elapsed_time:.2f} seconds")
+        print(f"API request to {url} took {elapsed_time:.2f} seconds------------")  
+        return response
+
+    response = timed_request(f'{API_BASE_URL}businesses/')
     if response.status_code == 200:
         businesses = response.json()
-        num_services = {}
+        
+        # Process the businesses to include the number of services directly from the response
         for business in businesses:
-            business['num_services'] = 0
-            response = requests.get(f'{API_BASE_URL}businesses/{business["id"]}/services/')
-            if response.status_code == 200:
-                services = response.json()
-                business['num_services'] = len(services)
+            business['num_services'] = len(business.get('services', []))
+        
+        # Store businesses in the session for use in other views
+        request.session['businesses'] = businesses
+
         return render(request, 'page1.html', {'businesses': businesses})
     else:
         raise Http404("Businesses not found")
     
-
-# Page 2: Service Listing for a Selected Business
+# Page 2: Service Listing
 def service_list_view(request, business_id):
-    response = requests.get(f'{API_BASE_URL}businesses/{business_id}/services/')
-    if response.status_code == 200:
-        services = response.json()
-        business = services[0]['business']
-        return render(request, 'page2.html', {'services': services, 'business': business})
-    else:
-        raise Http404("Services not found")
+    # Check if businesses are stored in the session
+    businesses = request.session.get('businesses', [])
+    
+    # Find the specific business by ID
+    business_data = next((b for b in businesses if b['id'] == business_id), None)
+    
+    if business_data is None:
+        raise Http404("Business not found")
 
-
-from django.core.cache import cache
-from django.http import Http404
-
+    # Extract services from the found business
+    services = business_data.get('services', [])
+    
+    return render(request, 'page2.html', {'services': services, 'business': business_data})
 
 # Page 3: Service Details and Professional Availability
 def service_detail_view(request, business_id, service_id):
@@ -56,9 +68,9 @@ def service_detail_view(request, business_id, service_id):
         0: 'Monday', 1: 'Tuesday', 2: 'Wednesday',
         3: 'Thursday', 4: 'Friday', 5: 'Saturday', 6: 'Sunday'
     }
-
+    
     def get_available_slots(business_hours, busy_slots, check_date, service_duration):
-        # Function logic remains the same...
+        """Calculate available slots based on business hours and busy slots."""
         day_of_week = check_date.strftime("%A")
         if day_of_week not in business_hours:
             return []
@@ -81,46 +93,42 @@ def service_detail_view(request, business_id, service_id):
 
         return available_slots
 
-    # Log the time taken for each API request
     def timed_request(url):
         start_time = time.time()
         response = requests.get(url)
         end_time = time.time()
         elapsed_time = end_time - start_time
         logger.info(f"API request to {url} took {elapsed_time:.2f} seconds")
+        print(f"API request to {url} took {elapsed_time:.2f} seconds------------")
         return response
 
-    # Fetch data for the service and professionals
-    service_response = timed_request(f'{API_BASE_URL}services/{service_id}/')
-    if service_response.status_code != 200:
+    # Fetch business data which includes services and operational hours
+    business_response = timed_request(f'{API_BASE_URL}businesses/{business_id}/')
+    if business_response.status_code != 200:
+        raise Http404("Business not found")
+    
+    business = business_response.json()
+
+    # Retrieve the specific service from the business data
+    service = next((s for s in business['services'] if s['id'] == service_id), None)
+    if not service:
         raise Http404("Service not found")
 
-    # Retrieve business and professionals in one call
-    professionals_response = timed_request(f'{API_BASE_URL}businesses/{business_id}/services/{service_id}/professionals/')
-    if professionals_response.status_code != 200:
-        raise Http404("Professionals not found")
+    # Process business hours
+    business_hours = {}
+    for day in business['operational_hours']:
+        business_hours[days_of_week[day['day_of_week']]] = (
+            datetime.strptime(day['open_time'], '%H:%M:%S').time(),
+            datetime.strptime(day['close_time'], '%H:%M:%S').time()
+        )
 
-    data = professionals_response.json()
-    service = service_response.json()
-    professionals = data.get('professionals', [])
+    # Process professionals from the service
+    professionals = service['professionals']
 
-    # Retrieve and cache business hours for the business
-    cache_key = f'business_hours_{business_id}'
-    business_hours = cache.get(cache_key)
-    if not business_hours:
-        business_hours = {}
-        for day in service['business']['operational_hours']:
-            business_hours[days_of_week[day['day_of_week']]] = (
-                datetime.strptime(day['open_time'], '%H:%M:%S').time(),
-                datetime.strptime(day['close_time'], '%H:%M:%S').time()
-            )
-        cache.set(cache_key, business_hours, timeout=86400)
-
-    # Process each professional's availability by fetching only their appointments
+    # Process each professional's availability
     for professional in professionals:
         busy_slots = []
-        
-        # Fetch only the relevant appointments for this professional
+        # Make a single API call to fetch appointments for all professionals
         appointment_response = timed_request(f'{API_BASE_URL}appointments/?professional_id={professional["id"]}')
         if appointment_response.status_code == 200:
             appointments = appointment_response.json()
@@ -140,7 +148,7 @@ def service_detail_view(request, business_id, service_id):
         'professionals': professionals,
         'business_id': business_id
     })
-
+    
 # Page 4: User Information Form
 def booking_form_view(request, business_id, service_id, professional_id, date, time):
     professional_response = requests.get(f'{API_BASE_URL}professionals/{professional_id}/')
@@ -255,7 +263,6 @@ def booking_summary_view(request, business_id, service_id, professional_id, date
 def thank_you_view(request, appointment_id):
     if not request.session.get('booking_successful'):
         return redirect('home')
-    
     response = requests.get(f'{API_BASE_URL}appointments/{appointment_id}/')
     if response.status_code == 200:
         appointment = response.json()

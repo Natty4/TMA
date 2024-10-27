@@ -11,26 +11,26 @@ class BusinessOperationalHoursSerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessOperationalHours
         fields = ['id', 'day_of_week', 'open_time', 'close_time', 'is_closed']
-
-
-class BusinessSerializer(serializers.ModelSerializer):
-    operational_hours = BusinessOperationalHoursSerializer(many=True)
-    class Meta:
-        model = Business
-        fields = ['id', 'name', 'address', 'phone_number', 'email', 'website', 'is_active', 'operational_hours']
-
-class ServiceSerializer(serializers.ModelSerializer):
-    professionals = serializers.StringRelatedField(many=True)
-    business = BusinessSerializer(read_only=True)
-
-    class Meta:
-        model = Service
-        fields = ['id', 'business', 'name', 'description', 'duration', 'price', 'professionals', 'is_active']
-
 class ProfessionalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Professional
         fields = ['id', 'business', 'full_name', 'role', 'experience_years', 'rating']
+
+class ServiceSerializer(serializers.ModelSerializer):
+    professionals = ProfessionalSerializer(many=True)
+    business = serializers.StringRelatedField()
+
+    class Meta:
+        model = Service
+        fields = ['id', 'name', 'description', 'duration', 'price', 'professionals', 'business', 'is_active']
+
+class BusinessSerializer(serializers.ModelSerializer):
+    operational_hours = BusinessOperationalHoursSerializer(many=True)
+    services = ServiceSerializer(many=True)
+    class Meta:
+        model = Business
+        fields = ['id', 'name', 'address', 'phone_number', 'email', 'website', 'is_active', 'operational_hours', 'services']
+
         
 class ProfessionalSerializerDetailed(serializers.ModelSerializer):
     business = BusinessSerializer(read_only=True)
