@@ -39,100 +39,98 @@ def service_list_view(request, business_id):
     else:
         raise Http404("Services not found")
 
+
+from django.core.cache import cache
+from django.http import Http404
+
+
 # Page 3: Service Details and Professional Availability
 def service_detail_view(request, business_id, service_id):
     days_of_week = {
-    0: 'Monday',
-    1: 'Tuesday',
-    2: 'Wednesday',
-    3: 'Thursday',
-    4: 'Friday',
-    5: 'Saturday',
-    6: 'Sunday'
-}
+        0: 'Monday', 1: 'Tuesday', 2: 'Wednesday',
+        3: 'Thursday', 4: 'Friday', 5: 'Saturday', 6: 'Sunday'
+    }
 
     def get_available_slots(business_hours, busy_slots, check_date, service_duration):
-        # Get business hours for the specific day
-        day_of_week = check_date.strftime("%A")  # Get the day of the week
+        # Initialize the variables for the available slots calculation
+        day_of_week = check_date.strftime("%A")
         if day_of_week not in business_hours:
-            return []  # No business hours for this day
+            return []
 
-        business_start_time, business_end_time = business_hours[day_of_week]
-        business_start_minutes = business_start_time.hour * 60 + business_start_time.minute
-        business_end_minutes = business_end_time.hour * 60 + business_end_time.minute
+        business_start, business_end = business_hours[day_of_week]
+        business_start_minutes = business_start.hour * 60 + business_start.minute
+        business_end_minutes = business_end.hour * 60 + business_end.minute
 
-        # Create a list to hold all busy minutes
-        busy_minutes = []
-        duration = service_duration
-        # Convert busy slots to minutes
-        for busy_slot in busy_slots:
-            busy_date = busy_slot[0]  # Access the date using index 0
-            start_time = busy_slot[1]  # Access the start time using index 1
-            end_time = busy_slot[2]  # Access the end time
-            duration =  service_duration # Duration of the service
-            if busy_date == check_date.date():  # Check if the busy slot is for the same date
-                start_minutes = start_time.hour * 60 + start_time.minute
-                end_minutes = end_time.hour * 60 + end_time.minute
-                busy_minutes.extend(range(start_minutes, end_minutes))
-
-        busy_minutes = sorted(set(busy_minutes))  # Remove duplicates and sort
+        # Track busy minutes in a set to avoid duplicate checks
+        busy_minutes = set()
+        for date, start, end, _ in busy_slots:
+            if date == check_date.date():
+                start_minutes = start.hour * 60 + start.minute
+                end_minutes = end.hour * 60 + end.minute
+                busy_minutes.update(range(start_minutes, end_minutes))
 
         available_slots = []
-        
-        # Start checking from the business opening hour
         current_time = business_start_minutes
+        while current_time + service_duration <= business_end_minutes:
+            if all(minute not in busy_minutes for minute in range(current_time, current_time + service_duration)):
+                slot_time = datetime.combine(check_date, datetime.min.time()) + timedelta(minutes=current_time)
+                available_slots.append(slot_time.strftime('%H:%M'))
+            current_time += service_duration
 
-        # Check every minute in the business hours
-        while current_time + (service_duration // 60) < business_end_minutes:
-            # If the current time is not in the busy schedule and there is enough time for the service
-            if all(minute not in busy_minutes for minute in range(current_time, current_time + (service_duration // 60))):
-                available_slots.append(datetime.combine(check_date, datetime.min.time()) + timedelta(minutes=current_time))
+        return available_slots
 
-            # Move to the next minute
-            current_time += duration
-
-        return [slot.strftime('%H:%M') for slot in available_slots]
-
-    # Usage of the function
+    # Fetch service and professional data
     service_response = requests.get(f'{API_BASE_URL}services/{service_id}/')
     professional_response = requests.get(f'{API_BASE_URL}businesses/{business_id}/professionals/')
-
-    if service_response.status_code == 200 and professional_response.status_code == 200:
-        service = service_response.json()
-        professionals = professional_response.json()
-        appointments = requests.get(f'{API_BASE_URL}appointments/')
-        
-        for professional in professionals:
-            busy_slots = []
-            available_slots = {}
-            
-            if appointments.status_code == 200:
-                professional['appointments'] = [appointment for appointment in appointments.json() if appointment['professional']['id'] == professional['id']]
-                for appointment in professional['appointments']:
-                    date = datetime.strptime(appointment['date'], '%Y-%m-%d').date()
-                    start_time = datetime.strptime(appointment['starting_time'], '%H:%M:%S').time()
-                    end_time = datetime.strptime(appointment['ending_time'], '%H:%M:%S').time()
-                    duration = service['duration']  # Assuming duration is in minutes
-
-                    busy_slots.append((date, start_time, end_time, duration))
-
-                business_hours = {}
-                for day in service['business']['operational_hours']:
-                    business_hours[days_of_week[day['day_of_week']]] = (
-                        datetime.strptime(day['open_time'], '%H:%M:%S').time(),
-                        datetime.strptime(day['close_time'], '%H:%M:%S').time()
-                    )
-                available_slots = get_available_slots(business_hours, busy_slots, datetime.now(), service['duration'])
-                professional['available_slots'] = available_slots
-                   
-                
-        return render(request, 'page3.html', {
-            'service': service,
-            'professionals': professionals,
-            'business_id': business_id
-        })
-    else:
+    
+    if service_response.status_code != 200 or professional_response.status_code != 200:
         raise Http404("Service or professionals not found")
+
+    service = service_response.json()
+    professionals = professional_response.json()
+    
+    # Check cached business hours for this business
+    cache_key = f'business_hours_{business_id}'
+    business_hours = cache.get(cache_key)
+    
+    if not business_hours:
+        # If business hours aren't cached, fetch and cache them
+        business_hours = {}
+        for day in service['business']['operational_hours']:
+            business_hours[days_of_week[day['day_of_week']]] = (
+                datetime.strptime(day['open_time'], '%H:%M:%S').time(),
+                datetime.strptime(day['close_time'], '%H:%M:%S').time()
+            )
+        cache.set(cache_key, business_hours, timeout=86400)  # Cache for 1 day
+
+    # Fetch all appointments once and filter for each professional
+    appointments_response = requests.get(f'{API_BASE_URL}appointments/')
+    if appointments_response.status_code == 200:
+        all_appointments = appointments_response.json()
+    else:
+        all_appointments = []
+
+    # Process each professional's availability
+    for professional in professionals:
+        busy_slots = [
+            (
+                datetime.strptime(appointment['date'], '%Y-%m-%d').date(),
+                datetime.strptime(appointment['starting_time'], '%H:%M:%S').time(),
+                datetime.strptime(appointment['ending_time'], '%H:%M:%S').time(),
+                service['duration']
+            )
+            for appointment in all_appointments if appointment['professional']['id'] == professional['id']
+        ]
+        
+        available_slots = get_available_slots(business_hours, busy_slots, datetime.now(), service['duration'])
+        professional['available_slots'] = available_slots
+
+    return render(request, 'page3.html', {
+        'service': service,
+        'professionals': professionals,
+        'business_id': business_id
+    })
+
 
 # Page 4: User Information Form
 def booking_form_view(request, business_id, service_id, professional_id, date, time):
