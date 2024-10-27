@@ -45,6 +45,11 @@ def service_list_view(request, business_id):
     else:
         raise Http404("Services not found")
 
+
+from django.core.cache import cache
+from django.http import Http404
+
+
 # Page 3: Service Details and Professional Availability
 def service_detail_view(request, business_id, service_id):
     days_of_week = {
