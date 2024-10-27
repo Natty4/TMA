@@ -27,8 +27,7 @@ def business_list_view(request):
         response = requests.get(url)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        logger.info(f"API request to {url} took {elapsed_time:.2f} seconds")
-        print(f"API request to {url} took {elapsed_time:.2f} seconds------------")  
+        logger.info(f"API request to {url} took {elapsed_time:.2f} seconds") 
         return response
 
     response = timed_request(f'{API_BASE_URL}businesses/')
@@ -99,7 +98,6 @@ def service_detail_view(request, business_id, service_id):
         end_time = time.time()
         elapsed_time = end_time - start_time
         logger.info(f"API request to {url} took {elapsed_time:.2f} seconds")
-        print(f"API request to {url} took {elapsed_time:.2f} seconds------------")
         return response
 
     # Fetch business data which includes services and operational hours
